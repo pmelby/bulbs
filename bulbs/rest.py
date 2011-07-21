@@ -36,7 +36,8 @@ class Resource(object):
             db_url = db_url[:-1]
         url_object = urlsplit(db_url)
         self.base_url = "%s://%s" % (url_object.scheme,url_object.netloc)
-        self.db_name = basename(url_object.path)        
+        self.db_name = basename(url_object.path)
+        self.http = httplib2.Http()
 
     def get(self,target,params):
         """Convenience method that sends GET requests to the resource.""" 
@@ -64,7 +65,7 @@ class Resource(object):
         assert method in ("GET","POST","DELETE"), \
             "Only GET, POST, DELETE are allowed."
 
-        headers = {'Accept': 'application/json', 'connection': 'close'}
+        headers = {'Accept': 'application/json'}
 
         # httplib2 let's you cache http responses with memcache 
         # really cool, look into that later
@@ -87,9 +88,9 @@ class Resource(object):
 
         attempt = 0
         ok = False
-        http = httplib2.Http()       
+        #http = httplib2.Http()       
         while not ok and (attempt < MAX_RETRIES):
-            resp = Response(http.request(url, method, body, headers))
+            resp = Response(self.http.request(url, method, body, headers))
             attempt += 1
             ok = resp.ok            
 
