@@ -38,6 +38,7 @@ class Element(object):
         :param results: The results list returned by Rexster.
 
         """
+        self._data = {}
         self.resource = resource
         self._set_element_data(results)
         self._gremlin = Gremlin(self.resource)
@@ -115,9 +116,9 @@ class Element(object):
         a hash.
         
         """
-        # coerce the element ID string to an int.
-        return int(self._data['_id'])
- 
+        #int(self._data['_id'])
+        return utils.coerce_id(self._data['_id'])
+
     @property
     def _type(self):
         """Returns the _type set by Rexster: either vertex, edge, or index."""
@@ -364,7 +365,7 @@ class Vertex(Element):
 
         """
         assert direction in ('inE','outE','bothE')
-        target = "%s/%d/%s" % (self._base_target(),self._id, direction)
+        target = "%s/%s/%s" % (self._base_target(),self._id, direction)
         params = None
         if label: 
             params = dict(_label=label)
@@ -395,12 +396,14 @@ class Edge(Element):
     @property
     def _outV(self):
         """Returns the outgoing vertex ID of the edge."""
-        return int(self._data['_outV'])
-
+        #return int(self._data['_outV'])
+        return utils.coerce_id(self._data['_outV'])
+        
     @property
     def _inV(self):
         """Returns the incoming vertex ID of the edge."""
-        return int(self._data['_inV'])
+        #return int(self._data['_inV'])
+        return utils.coerce_id(self._data['_inV'])
 
     # TODO: Make outV and inV return a specific Model class and not a generic 
     # Vertex
@@ -447,7 +450,7 @@ class ElementProxy(object):
         :param _id: The element ID.
 
         """
-        uri = "%s/%s/%d" % (self.resource.db_url,self._path(),int(_id))
+        uri = "%s/%s/%s" % (self.resource.db_url,self._path(),_id)
         return uri
 
     def create(self,data,raw=False):
@@ -485,21 +488,29 @@ class ElementProxy(object):
                      instantiate the object and will return the raw Response 
                      object.
         """
-        target = "%s/%d" % (self._base_target(),int(_id))
+        target = "%s/%s" % (self._base_target(),_id)
         resp = self.resource.post(target,data)
         if raw is True:
             return resp
         return self.element_class(self.resource,resp.results)
 
-    def get(self,_id):
+    def get(self,_id,raw=False):
         """ 
         Retrieves an element from Rexster and returns it. 
         
         :param _id: The ID of the element you want to retrieve.
 
+        :param raw: Optional keyword param. If raw is False (which is the 
+                    default) it will try to instantiate the element to the 
+                    element_class specified when the proxy object was created.
+                    However, if the raw param is set to True, it will won't 
+                    instantiate the object and will return the raw Response 
+                    object.
         """
-        target = "%s/%d" % (self._base_target(),int(_id))
+        target = "%s/%s" % (self._base_target(),_id)
         resp = self.resource.get(target,params=None)
+        if raw is True:
+            return resp
         if resp.results:
             return self.element_class(self.resource,resp.results)        
     
@@ -520,7 +531,7 @@ class ElementProxy(object):
         # shouldn't this return the updated vertex instead?
         if params is None:
             raise Exception("params are required.")
-        target = "%s/%d" % (self._base_target(),int(_id))
+        target = "%s/%s" % (self._base_target(),_id)
         resp = self.resource.delete(target,params)
         return resp
 
@@ -531,7 +542,7 @@ class ElementProxy(object):
         :param element: The element you want to delete.
         """
         # TODO: Why are we requiring the full element and not just the ID?
-        target = "%s/%d" % (self._base_target(),int(element._id))
+        target = "%s/%s" % (self._base_target(),element._id)
         resp = self.resource.delete(target,params=None)
         return resp
 
@@ -615,8 +626,8 @@ class EdgeProxy(ElementProxy):
             vertex_id = v._id
         else:
             # the vertex ID may have been passed in as a string
-            vertex_id = int(v)
+            #vertex_id = int(v)
+            vertex_id = utils.coerce_id(v)
         return vertex_id
 
-  
   

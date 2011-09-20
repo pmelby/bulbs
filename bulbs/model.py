@@ -56,8 +56,13 @@ class Model(TypeSystem):
 
     @classmethod
     def get_all(self):
-        """Returns all the elements for the element's base class."""
-        return self._element_proxy.get_all()
+        """Returns all the elements for the model type."""
+        index_name = self._element_proxy._path()
+        target = "%s/indices/%s" % (self.resource.db_name,index_name)
+        params = dict(key="element_type",value=self.element_type)
+        resp = self.resource.get(target,params)
+        for result in resp.results:
+            yield self(self.resource,result)
 
     @classmethod 
     def remove(self,_id,params):
@@ -149,7 +154,10 @@ class Model(TypeSystem):
         self.before_created()
         # Using super here b/c Vertex and Edge have different create methods
         #resp = super(self.__class__,self).create(*args,raw=True)
-        resp = self._element_proxy.create(*args,raw=True)
+        # got a "mismatched input, expecting double star" in Jython so
+        # passing raw as a "double star"
+        kwds = dict(raw=True)
+        resp = self._element_proxy.create(*args,**kwds)
         self._initialize_element(self.resource,resp.results)
         #self.set_element_data(resp.results)
         self.after_created()
@@ -427,6 +435,13 @@ class Relationship(Edge,Model):
     """
 
     def __init__(self,*args,**kwds):
+        args = list(args)
+        if args and isinstance(args[1],Vertex):
+            # 2nd arg is a Vertex so they're in form of CreatedBy(entry,james)
+            # TODO: clean up this arg thing -- this is a quick hack to fix a bug
+            outV = args.pop(0)
+            inV = args.pop(0) 
+            args = (outV,self.label,inV)
         self.initialize(args,kwds)
     
     @classmethod

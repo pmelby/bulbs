@@ -30,14 +30,22 @@ class Resource(object):
         :param db_url: the base URL of Rexster.
 
         """
+
+        print "DB_URL", db_url
         self.db_url = db_url
         if db_url.endswith("/"):
             # strip off trailing slash
             db_url = db_url[:-1]
         url_object = urlsplit(db_url)
+<<<<<<< HEAD
         self.base_url = "%s://%s" % (url_object.scheme,url_object.netloc)
         self.db_name = basename(url_object.path)
         self.http = httplib2.Http()
+=======
+        self.base_url = "%s://%s/graphs" % (url_object.scheme,url_object.netloc)
+        self.db_name = basename(url_object.path)        
+        self.http = httplib2.Http()       
+>>>>>>> 9150dae4f5b6386bdcb4cfcf43f38e4e78eb4f15
 
     def get(self,target,params):
         """Convenience method that sends GET requests to the resource.""" 
@@ -88,7 +96,10 @@ class Resource(object):
 
         attempt = 0
         ok = False
+<<<<<<< HEAD
         #http = httplib2.Http()       
+=======
+>>>>>>> 9150dae4f5b6386bdcb4cfcf43f38e4e78eb4f15
         while not ok and (attempt < MAX_RETRIES):
             resp = Response(self.http.request(url, method, body, headers))
             attempt += 1

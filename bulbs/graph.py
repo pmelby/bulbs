@@ -43,8 +43,8 @@ class Graph(object):
         self.indices = IndexProxy(self.resource)
         self.gremlin = Gremlin(self.resource)
 
-    def __rshift__(self,b):
-        return list(self)
+    #def __rshift__(self,b):
+    #    return list(self)
 
     @property
     def V(self):
@@ -155,7 +155,7 @@ class Graph(object):
             element_class = class_map[index_name]
             return (element_class(self.resource,result) for result in resp.results)
 
-
+    
     def load_graphml(self,url):
         """
         Loads a GraphML file into the database, and returns the Rexster 
@@ -225,6 +225,19 @@ class SailGraph(Graph):
     def remove_prefix(self,prefix):
         target = "%s/%s" % (self._base_target(), prefix)
         resp = self.resource.delete(target,params=None)
+        return resp
+
+    def load_rdf(self,url):
+        """
+        Loads an RDF file into the database, and returns the Rexster 
+        response object.
+
+        :param url: The URL of the RDF file to load.
+
+        """
+        script = "g.loadRDF('%s', 'n-triples')" % url
+        params = dict(script=script)
+        resp = self.resource.get(self.base_target,params)
         return resp
 
     def _base_target(self):
