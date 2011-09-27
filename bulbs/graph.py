@@ -164,12 +164,7 @@ class Graph(object):
 
         """
         script = "g.loadGraphML('%s')" % url
-<<<<<<< HEAD
-        params = dict(script=script)
-        resp = self.resource.get(self.gremlin.base_target,params)
-=======
         resp = self.gremlin.execute(script)
->>>>>>> upstream/master
         return resp
 
     def save_graphml(self):
@@ -182,16 +177,9 @@ class Graph(object):
         g.saveGraphML('data/graphml');
         new File('data/graphml').getText();
         """
-<<<<<<< HEAD
-        params = dict(script=script)
-        resp = self.resource.get(self.gremlin.base_target,params)
-        return resp.results
-
-=======
         results = self.gremlin.execute(script)
         return results[0]
     
->>>>>>> upstream/master
     def clear(self):
         """
         Deletes all the elements in the graph.
